@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กิจกรรมสด | โลกดิจิทัลของเรา 2569</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<style>
+  :root{--pur:#6C5CE7;--pur-d:#5B4BC4;--pink:#FF6B9D;--pink-d:#E14B7B;--mint:#1FB9A6;--yel:#FFC93C;--yel-d:#E9A400;--ink:#2B2D42;--mute:#8A8FA3;--line:#EBE7FA;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Prompt',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--ink);
+       background:linear-gradient(160deg,#EFEBFF 0%,#FFF0F6 55%,#E8FBF6 100%);min-height:100vh;}
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 40px;}
+  .wide{max-width:920px;}
+  .card{background:#fff;border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(108,92,231,.14);margin-bottom:16px;}
+  .kicker{display:inline-block;padding:6px 14px;border-radius:20px;background:var(--pur);color:#fff;font-weight:700;font-size:13px;margin-bottom:10px;}
+  h1{font-size:24px;font-weight:800;margin:0 0 6px;line-height:1.25;}
+  h2{font-size:19px;font-weight:800;margin:0 0 6px;}
+  .lead{color:var(--mute);font-size:15px;line-height:1.55;margin:0 0 8px;}
+  .btn{display:block;width:100%;border:none;cursor:pointer;border-radius:16px;padding:15px;font-family:inherit;font-weight:700;font-size:17px;color:#fff;background:var(--pur);box-shadow:0 8px 20px rgba(108,92,231,.3);transition:transform .12s,filter .2s;margin-top:10px;}
+  .btn:active{transform:translateY(2px) scale(.99);} .btn:disabled{filter:grayscale(.4) opacity(.6);cursor:default;}
+  .btn.alt{background:#fff;color:var(--pur);border:2px solid var(--line);box-shadow:none;}
+  .btn.pink{background:var(--pink);box-shadow:0 8px 20px rgba(255,107,157,.3);} .btn.mint{background:var(--mint);} .btn.yel{background:var(--yel-d);}
+  .input{width:100%;border:2px solid var(--line);border-radius:14px;padding:14px;font-family:inherit;font-size:16px;color:var(--ink);outline:none;}
+  .input:focus{border-color:var(--pur);}
+  .opt{width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:16px;padding:16px;margin-bottom:11px;font-family:inherit;font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;transition:.15s;}
+  .opt:active{transform:scale(.99);} .opt.sel{border-color:var(--pur);background:#F3F0FF;}
+  .pill{display:inline-block;padding:5px 12px;border-radius:14px;background:#F3F0FF;color:var(--pur);font-weight:700;font-size:12px;}
+  .muted{color:var(--mute);font-size:13px;}
+  /* bars */
+  .bar{margin-bottom:12px;}
+  .bar .top{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:5px;}
+  .bar .track{height:26px;background:#F1EEFB;border-radius:13px;overflow:hidden;}
+  .bar .fill{height:100%;border-radius:13px;width:0;transition:width .6s ease;min-width:3px;}
+  /* word cloud */
+  .cloud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;padding:8px 0;}
+  .cloud span{font-weight:700;line-height:1;}
+  /* open bubbles */
+  .bubbles{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;}
+  .bubble{background:#F6F4FF;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.5;}
+  .bubble b{color:var(--pur);font-size:12px;}
+  /* host grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .act{border:2px solid var(--line);border-radius:16px;padding:12px;background:#fff;cursor:pointer;transition:.15s;}
+  .act:hover{border-color:var(--pur);} .act.live{border-color:var(--pink);background:#FFF3F8;}
+  .act .t{font-size:12px;color:var(--mute);font-weight:600;}
+  .act .q{font-size:14px;font-weight:600;margin-top:3px;line-height:1.35;}
+  .live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pink);margin-right:5px;animation:bl 1s infinite;}
+  @keyframes bl{50%{opacity:.35;}}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row .btn{margin-top:0;flex:1;min-width:120px;}
+  .count{font-size:40px;font-weight:800;color:var(--pur);}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;transition:.3s;z-index:50;}
+  .toast.on{opacity:1;}
+  .setup li{margin-bottom:8px;line-height:1.55;}
+  code{background:#F1EEFB;padding:2px 6px;border-radius:6px;font-size:13px;}
+  .fade{animation:fd .35s ease;}@keyframes fd{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ⚙️ 1) วางคอนฟิก Firebase ของคุณตรงนี้ (ดูวิธีในไฟล์คู่มือ)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBiqKI1S3UxPF0HHfJwjCMzRB5GiCcNmbs",
+  authDomain: "digit4freshvote.firebaseapp.com",
+  databaseURL: "https://digit4freshvote-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "digit4freshvote",
+  storageBucket: "digit4freshvote.firebasestorage.app",
+  messagingSenderId: "868370482435",
+  appId: "1:868370482435:web:e10aa4834c1c452f2ad536"
+};
+const ROOM = "digital2569";   // เปลี่ยนได้ถ้าจัดหลายห้อง
+
+/* ============================================================
+   📋 2) รายการกิจกรรม (แก้/เพิ่มได้ตามใจ)
+   type: 'poll' = โหวตตัวเลือก | 'word' = คำสั้น→word cloud | 'open' = ข้อความยาว→ฟองข้อความ
+   ============================================================ */
+const ACTIVITIES = [
+  {id:'ice', type:'word', tag:'ละลายพฤติกรรม', q:'พิมพ์ 3 แอปที่คุณเปิดบ่อยที่สุด (ทีละคำ)'},
+  {id:'screen', type:'poll', tag:'กิจกรรม 1', q:'วันนี้คุณใช้จอวันละกี่ชั่วโมง?', options:['น้อยกว่า 3 ชม.','3–6 ชม.','6–9 ชม.','มากกว่า 9 ชม.']},
+  {id:'prompt', type:'open', tag:'กิจกรรม 2', q:'ช่วยกันแต่ง “คำสั่ง (prompt)” ที่ดีให้ AI ช่วยวางแผนอ่านหนังสือสอบสัปดาห์หน้า'},
+  {id:'realai', type:'poll', tag:'กิจกรรม 3', q:'ภาพ/ข้อความที่เห็น: จริง หรือ AI สร้าง?', options:['ของจริง','AI สร้าง']},
+  {id:'scam', type:'open', tag:'กิจกรรม 4', q:'ช่วยกันหา “จุดพิรุธ” ของข้อความมิจฉาชีพให้เยอะที่สุด'},
+  {id:'hurt', type:'poll', tag:'กิจกรรม 5', q:'คอมเมนต์นี้: ขำได้ หรือ ทำร้ายกัน?', options:['ขำได้','ก้ำกึ่ง','ทำร้ายกัน']},
+  {id:'truefake', type:'poll', tag:'กิจกรรม 6', q:'คำกล่าวอ้างนี้: จริง หรือ มั่ว?', options:['จริง','มั่ว']},
+  {id:'pledge', type:'word', tag:'กิจกรรม 7', q:'คำมั่นดิจิทัลของฉัน 1 ข้อ (พิมพ์สั้น ๆ)'},
+  {id:'scenA', type:'open', tag:'สถานการณ์ A', q:'รูปเมื่อ 3 ปีก่อนถูกเอามาโพสต์ล้อในกลุ่ม — ถ้าเป็นคุณจะทำยังไง?'},
+  {id:'scenB', type:'poll', tag:'สถานการณ์ B', q:'AI ทำการบ้านให้ทั้งชิ้น จะส่งเลยไหม?', options:['ส่งเลย','ใช้เป็นตัวช่วยแล้วเขียนเอง','ไม่ส่ง']},
+  {id:'scenC', type:'open', tag:'สถานการณ์ C', q:'“เพื่อน” ทักมาขอยืมเงินด่วน คุณจะเช็กยังไงก่อนโอน?'},
+  {id:'scenD', type:'poll', tag:'สถานการณ์ D', q:'แอปแต่งรูปขอเข้าถึงทุกอย่าง จะกดอนุญาตแบบไหน?', options:['อนุญาตทั้งหมด','ให้เฉพาะที่จำเป็น','ไม่ใช้แอปนี้']},
+  {id:'scenE', type:'open', tag:'สถานการณ์ E', q:'เพื่อนโดนรุมล้อในกลุ่มแชต คุณจะทำอะไร?'}
+];
+
+/* ============================================================ */
+const COLORS = ["#6C5CE7","#FF6B9D","#1FB9A6","#E9A400","#8B5CF6","#00A6C0"];
+const el = (id)=>document.getElementById(id);
+const root = el("root");
+const byId = (id)=>ACTIVITIES.find(a=>a.id===id);
+const isHost = location.hash.toLowerCase().includes("host");
+let db=null, configured = !firebaseConfig.apiKey.includes("PASTE");
+
+function toast(m){ const t=el("toast"); t.textContent=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),1800); }
+function esc(s){ return (s||"").replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+/* ---------- setup screen ---------- */
+function setupScreen(){
+  document.querySelector('.wrap').classList.add('wide');
+  root.innerHTML = `<div class="card setup fade">
+    <div class="kicker" style="background:var(--yel-d)">ต้องตั้งค่าก่อนใช้งาน</div>
+    <h1>ยังไม่ได้ใส่คอนฟิก Firebase</h1>
+    <p class="lead">ระบบนี้ต้องเชื่อม Firebase (ฟรี) เพื่อให้โหวตสดข้ามเครื่องได้ ทำตามคู่มือ <code>คู่มือระบบโหวตสด (Firebase).md</code> สรุปสั้น ๆ:</p>
+    <ol class="setup">
+      <li>สร้างโปรเจกต์ฟรีที่ <b>console.firebase.google.com</b></li>
+      <li>เปิด <b>Realtime Database</b> → Create (เลือก location, Start in test mode)</li>
+      <li>ไปที่ Project settings → เพิ่ม Web app → คัดลอกค่า <code>firebaseConfig</code></li>
+      <li>วางทับส่วน <code>firebaseConfig</code> ที่ต้นไฟล์นี้ แล้วบันทึก</li>
+      <li>อัปโหลดไฟล์ขึ้น Netlify/GitHub Pages (ดูคู่มือ Deploy)</li>
+    </ol>
+    <p class="lead">เมื่อใส่ค่าถูกต้อง หน้านี้จะกลายเป็นหน้าโหวตของนักเรียนโดยอัตโนมัติ ส่วนจอควบคุมของคุณเปิดที่ลิงก์เดิมต่อท้ายด้วย <code>#host</code></p>
+  </div>`;
+}
+
+/* ---------- init firebase ---------- */
+function init(){
+  if(!configured){ setupScreen(); return; }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+  }catch(e){ root.innerHTML = `<div class="card"><h2>เชื่อม Firebase ไม่สำเร็จ</h2><p class="lead">${esc(e.message)}</p></div>`; return; }
+  if(isHost) hostView(); else studentView();
+}
+
+/* ============================================================
+   👩‍🏫 HOST VIEW
+   ============================================================ */
+function hostView(){
+  document.querySelector('.wrap').classList.add('wide');
+  root.innerHTML = `
+    <div class="card fade">
+      <div class="kicker" style="background:var(--pink)">จอควบคุมของวิทยากร</div>
+      <h1>กดเลือกกิจกรรมเพื่อ “เริ่ม”</h1>
+      <p class="lead">นักเรียนเปิดลิงก์เดียวค้างไว้ พอคุณกดเริ่ม หน้าจอนักเรียนจะเด้งขึ้นให้ตอบทันที</p>
+      <div class="grid" id="acts"></div>
+    </div>
+    <div class="card fade" id="live"></div>`;
+  const g = el("acts");
+  ACTIVITIES.forEach(a=>{
+    const d=document.createElement("div"); d.className="act"; d.id="act-"+a.id;
+    d.innerHTML=`<div class="t">${a.tag} · ${a.type==='poll'?'โหวต':a.type==='word'?'word cloud':'ข้อความ'}</div><div class="q">${esc(a.q)}</div>`;
+    d.onclick=()=>startActivity(a.id);
+    g.appendChild(d);
+  });
+  db.ref(`rooms/${ROOM}/state`).on("value",s=>{ renderHostLive(s.val()); });
+}
+
+function startActivity(id){
+  const activation = Date.now().toString();
+  db.ref(`rooms/${ROOM}/state`).set({ activeId:id, activation, open:true });
+  toast("เริ่มกิจกรรมแล้ว 🎉");
+}
+let liveUnsub=null;
+function renderHostLive(state){
+  document.querySelectorAll(".act").forEach(x=>x.classList.remove("live"));
+  const box = el("live");
+  if(!state || !state.activeId){ box.innerHTML=`<p class="lead">ยังไม่มีกิจกรรมที่กำลังทำ — เลือกด้านบนเพื่อเริ่ม</p>`; return; }
+  const a = byId(state.activeId); if(!a) return;
+  const liveCard = el("act-"+a.id); if(liveCard) liveCard.classList.add("live");
+  box.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div><span class="pill" style="background:#FFF3F8;color:var(--pink-d)"><span class="live-dot"></span>กำลังทำ</span>
+      <div style="font-size:18px;font-weight:800;margin-top:6px">${esc(a.q)}</div></div>
+      <div style="text-align:center"><div class="count" id="cnt">0</div><div class="muted">คำตอบ</div></div>
+    </div>
+    <div id="result" style="margin-top:16px"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn ${state.open?'':'alt'}" id="toggleOpen">${state.open?'⏸ ปิดรับคำตอบ':'▶ เปิดรับต่อ'}</button>
+      <button class="btn alt" id="reset">🗑 ล้างคำตอบ</button>
+      <button class="btn yel" id="proj">🖥 ฉายผลเต็มจอ</button>
+    </div>`;
+  el("toggleOpen").onclick=()=>db.ref(`rooms/${ROOM}/state/open`).set(!state.open);
+  el("reset").onclick=()=>{ if(confirm("ล้างคำตอบของกิจกรรมนี้?")) db.ref(`rooms/${ROOM}/responses/${state.activation}`).remove(); };
+  el("proj").onclick=()=>projector(a);
+  if(liveUnsub) liveUnsub();
+  const ref = db.ref(`rooms/${ROOM}/responses/${state.activation}`);
+  const cb = ref.on("value",snap=>{ const data=snap.val()||{}; const arr=Object.values(data);
+    el("cnt").textContent=arr.length; el("result").innerHTML=renderResult(a,arr); });
+  liveUnsub=()=>ref.off("value",cb);
+}
+
+/* ---------- result renderers ---------- */
+function renderResult(a,arr){
+  if(a.type==='poll'){
+    const counts=a.options.map(o=>arr.filter(r=>r.v===o).length);
+    const total=arr.length||1;
+    return a.options.map((o,i)=>{ const c=counts[i]; const pct=Math.round(c/total*100);
+      return `<div class="bar"><div class="top"><span>${esc(o)}</span><span>${c} · ${pct}%</span></div>
+        <div class="track"><div class="fill" style="background:${COLORS[i%COLORS.length]};width:${pct}%"></div></div></div>`; }).join("");
+  }
+  if(a.type==='word'){
+    const map={}; arr.forEach(r=>{ const k=(r.v||"").trim().toLowerCase(); if(!k) return; map[k]=(map[k]||0)+1; });
+    const entries=Object.entries(map).sort((x,y)=>y[1]-x[1]);
+    if(!entries.length) return `<p class="muted">รอคำตอบ…</p>`;
+    const max=entries[0][1];
+    return `<div class="cloud">`+entries.map(([w,c],i)=>{ const sz=Math.round(16+ (c/max)*30);
+      return `<span style="font-size:${sz}px;color:${COLORS[i%COLORS.length]}">${esc(w)}${c>1?`<sub style="font-size:11px;color:var(--mute)"> ${c}</sub>`:''}</span>`; }).join("")+`</div>`;
+  }
+  // open
+  if(!arr.length) return `<p class="muted">รอคำตอบ…</p>`;
+  return `<div class="bubbles">`+arr.slice().reverse().map(r=>`<div class="bubble">${r.n?`<b>${esc(r.n)}</b><br>`:''}${esc(r.v)}</div>`).join("")+`</div>`;
+}
+
+/* ---------- projector (fullscreen result) ---------- */
+function projector(a){
+  const ov=document.createElement("div");
+  ov.style.cssText="position:fixed;inset:0;background:linear-gradient(160deg,#6C5CE7,#8B5CF6);z-index:100;padding:40px;overflow:auto;color:#fff";
+  ov.innerHTML=`<div style="max-width:1000px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:16px;opacity:.9;font-weight:700">${a.tag}</div>
+      <button id="closeP" style="border:none;background:rgba(255,255,255,.2);color:#fff;font-family:inherit;font-weight:700;padding:10px 18px;border-radius:12px;cursor:pointer">ปิด ✕</button>
+    </div>
+    <div style="font-size:30px;font-weight:800;margin:12px 0 24px">${esc(a.q)}</div>
+    <div id="pres" style="background:#fff;border-radius:22px;padding:26px;color:var(--ink)"></div></div>`;
+  document.body.appendChild(ov);
+  el("closeP").onclick=()=>ov.remove();
+  db.ref(`rooms/${ROOM}/state`).once("value",s=>{ const st=s.val();
+    db.ref(`rooms/${ROOM}/responses/${st.activation}`).on("value",snap=>{
+      const arr=Object.values(snap.val()||{}); const p=el("pres"); if(p) p.innerHTML=renderResult(a,arr); }); });
+}
+
+/* ============================================================
+   🧑‍🎓 STUDENT VIEW
+   ============================================================ */
+let curActivation=null;
+function answeredKey(act){ return "ans_"+ROOM+"_"+act; }
+function hasAnswered(act){ try{return localStorage.getItem(answeredKey(act))==="1";}catch(e){return false;} }
+function markAnswered(act){ try{localStorage.setItem(answeredKey(act),"1");}catch(e){} }
+
+function studentView(){
+  root.innerHTML = `<div class="card fade" id="stage"></div>`;
+  waiting();
+  db.ref(`rooms/${ROOM}/state`).on("value",s=>{ const st=s.val();
+    if(!st || !st.activeId){ curActivation=null; waiting(); return; }
+    curActivation=st.activation;
+    const a=byId(st.activeId);
+    if(!st.open && !hasAnswered(st.activation)){ closedView(a); return; }
+    if(hasAnswered(st.activation)){ thanks(a); return; }
+    renderStudentActivity(a, st.activation, st.open);
+  });
+}
+function waiting(){
+  el("stage").innerHTML=`<div style="text-align:center;padding:20px 4px">
+    <div style="font-size:54px">✨</div>
+    <div class="kicker">พร้อมเล่นกิจกรรม</div>
+    <h1>รอวิทยากรเริ่มกิจกรรม…</h1>
+    <p class="lead">อยู่หน้านี้ค้างไว้ได้เลย พอเริ่มกิจกรรม หน้าจอจะเปลี่ยนให้อัตโนมัติ</p></div>`;
+}
+function closedView(a){
+  el("stage").innerHTML=`<div style="text-align:center;padding:20px 4px">
+    <div style="font-size:50px">⏱️</div><div class="kicker" style="background:var(--yel-d)">${a.tag}</div>
+    <h1>กิจกรรมนี้ปิดรับคำตอบแล้ว</h1><p class="lead">รอกิจกรรมถัดไปได้เลย</p></div>`;
+}
+function thanks(a){
+  el("stage").innerHTML=`<div style="text-align:center;padding:20px 4px">
+    <div style="font-size:50px">🎉</div><div class="kicker" style="background:var(--mint)">${a.tag}</div>
+    <h1>ส่งคำตอบแล้ว!</h1><p class="lead">ขอบคุณที่ร่วมกิจกรรม — รอวิทยากรเริ่มกิจกรรมต่อไปได้เลย</p>
+    <div class="muted" id="livecnt"></div></div>`;
+  if(curActivation){ db.ref(`rooms/${ROOM}/responses/${curActivation}`).on("value",s=>{
+    const n=Object.keys(s.val()||{}).length; const c=el("livecnt"); if(c) c.textContent=`มีเพื่อนตอบแล้ว ${n} คน`; }); }
+}
+function renderStudentActivity(a, activation, open){
+  const stage=el("stage");
+  if(a.type==='poll'){
+    stage.innerHTML=`<div class="fade"><div class="kicker" style="background:var(--pink)">${a.tag}</div>
+      <h1>${esc(a.q)}</h1><div id="opts" style="margin-top:14px"></div></div>`;
+    const o=el("opts");
+    a.options.forEach(opt=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=opt;
+      b.onclick=()=>submit(a,activation,opt); o.appendChild(b); });
+  } else {
+    const multi = a.type==='word';
+    stage.innerHTML=`<div class="fade"><div class="kicker" style="background:var(--pur)">${a.tag}</div>
+      <h1>${esc(a.q)}</h1>
+      ${a.type==='word'?'<p class="lead">พิมพ์ทีละคำ ส่งได้หลายครั้ง</p>':'<p class="lead">พิมพ์ความคิดเห็นของคุณ</p>'}
+      <input class="input" id="txt" placeholder="${a.type==='word'?'พิมพ์คำ…':'พิมพ์คำตอบ…'}" ${a.type==='word'?'maxlength="24"':''}>
+      <button class="btn" id="send">ส่งคำตอบ</button>
+      <div class="muted" id="sent" style="margin-top:8px"></div></div>`;
+    el("send").onclick=()=>{ const v=el("txt").value.trim(); if(!v){toast("พิมพ์คำตอบก่อนนะ");return;}
+      pushResp(a,activation,v);
+      if(multi){ el("txt").value=""; el("sent").textContent="ส่งแล้ว! พิมพ์คำต่อไปได้เลย"; toast("ส่งแล้ว ✓"); }
+      else { markAnswered(activation); thanks(a); }
+    };
+    el("txt").addEventListener("keydown",e=>{ if(e.key==="Enter") el("send").click(); });
+  }
+}
+function submit(a,activation,value){ pushResp(a,activation,value); markAnswered(activation); thanks(a); }
+function pushResp(a,activation,value){
+  db.ref(`rooms/${ROOM}/responses/${activation}`).push({ v:value, t:Date.now() });
+}
+
+/* ---------- go ---------- */
+init();
+</script>
+</body>
+</html>
